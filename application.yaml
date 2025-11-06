@@ -1,0 +1,41 @@
+## For patching and jsonnet examples
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: configuration-test
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/dhruv4-3/configuration-test.git
+    targetRevision: HEAD
+    path: jsonnet
+    ## Patching example
+    # kustomize:
+    #   patches:
+    #     - target:
+    #         kind: ConfigMap
+    #       patch: |-
+    #         - op: add
+    #           path: /data/new
+    #           value: "working"
+    ## Jsonnet example
+    directory:
+      recurse: true
+      jsonnet:
+        extVars:
+          - name: newValue
+            value: "working"
+      # exclude: '{ config-patch-*.yaml, kustomization.yaml }'
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
